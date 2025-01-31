@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRコードスキャナー</title>
+    <script src="https://unpkg.com/qr-scanner/qr-scanner.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        video {
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>QRコードスキャナー</h1>
+    <video id="video" autoplay></video>
+    <p><strong>QRコードの内容:</strong> <span id="result">スキャン待機中...</span></p>
+
+    <script>
+        const video = document.getElementById('video');
+        const result = document.getElementById('result');
+
+        async function startScanner() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+
+                const qrScanner = new QrScanner(video, (decodedText) => {
+                    result.textContent = decodedText;
+                    qrScanner.stop(); // 読み取ったらスキャナーを停止
+                });
+                qrScanner.start();
+            } catch (error) {
+                console.error("カメラのアクセスに失敗しました", error);
+                result.textContent = "カメラのアクセスに失敗しました";
+            }
+        }
+
+        startScanner();
+    </script>
+</body>
+</html>
