@@ -21,31 +21,35 @@
     <h1>QRコードスキャナー</h1>
     <video id="video" autoplay></video>
     <p><strong>QRコードの内容:</strong> <span id="result">スキャン待機中...</span></p>
+    <p style="color: red;" id="error-message"></p>
 
     <script>
         const video = document.getElementById('video');
         const result = document.getElementById('result');
+        const errorMessage = document.getElementById('error-message');
 
         async function startScanner() {
             try {
+                // カメラアクセス開始
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
 
-                // QrScannerのワーカーパスを設定
+                // QrScanner のワーカースクリプトパスを設定
                 QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner/qr-scanner-worker.min.js";
 
+                // QrScanner の初期化
                 const qrScanner = new QrScanner(video, (decodedText) => {
                     result.textContent = decodedText;
                     qrScanner.stop(); // 読み取ったらスキャナーを停止
                 }, (error) => {
-                    console.error("QRコードのスキャンに失敗:", error);
-                    result.textContent = "QRコードのスキャンに失敗しました";
+                    console.error("QRコードの読み取りエラー:", error);
+                    errorMessage.textContent = "QRコードの読み取りに失敗しました";
                 });
 
                 await qrScanner.start();
             } catch (error) {
                 console.error("カメラのアクセスに失敗しました:", error);
-                result.textContent = "カメラのアクセスに失敗しました: " + error.message;
+                errorMessage.textContent = "カメラのアクセスに失敗しました: " + error.message;
             }
         }
 
