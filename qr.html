@@ -4,7 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QRコードスキャナー</title>
-    <script src="https://unpkg.com/qr-scanner/qr-scanner.min.js"></script>
+    <script src="https://unpkg.com/qr-scanner/qr-scanner.min.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                // QrScannerのワーカーを明示的に設定
+                QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner/qr-scanner-worker.min.js";
+
+                const video = document.getElementById('video');
+                const result = document.getElementById('result');
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+
+                console.log("カメラアクセス成功");
+
+                // QrScannerのインスタンスを作成
+                const qrScanner = new QrScanner(video, (decodedText) => {
+                    console.log("QRコード読み取り成功:", decodedText);
+                    result.textContent = decodedText;
+                    qrScanner.stop(); // 1回スキャンしたら停止
+                });
+
+                qrScanner.start();
+            } catch (error) {
+                console.error("エラー発生:", error);
+                document.getElementById('result').textContent = "エラー: " + error.message;
+            }
+        });
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,39 +49,5 @@
     <h1>QRコードスキャナー</h1>
     <video id="video" autoplay></video>
     <p><strong>QRコードの内容:</strong> <span id="result">スキャン待機中...</span></p>
-    <p style="color: red;" id="error-message"></p>
-
-    <script>
-        const video = document.getElementById('video');
-        const result = document.getElementById('result');
-        const errorMessage = document.getElementById('error-message');
-
-        async function startScanner() {
-            try {
-                // カメラアクセス開始
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                video.srcObject = stream;
-
-                // QrScanner のワーカースクリプトパスを設定
-                QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner/qr-scanner-worker.min.js";
-
-                // QrScanner の初期化
-                const qrScanner = new QrScanner(video, (decodedText) => {
-                    result.textContent = decodedText;
-                    qrScanner.stop(); // 読み取ったらスキャナーを停止
-                }, (error) => {
-                    console.error("QRコードの読み取りエラー:", error);
-                    errorMessage.textContent = "QRコードの読み取りに失敗しました";
-                });
-
-                await qrScanner.start();
-            } catch (error) {
-                console.error("カメラのアクセスに失敗しました:", error);
-                errorMessage.textContent = "カメラのアクセスに失敗しました: " + error.message;
-            }
-        }
-
-        startScanner();
-    </script>
 </body>
 </html>
