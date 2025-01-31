@@ -31,14 +31,21 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
 
+                // QrScannerのワーカーパスを設定
+                QrScanner.WORKER_PATH = "https://unpkg.com/qr-scanner/qr-scanner-worker.min.js";
+
                 const qrScanner = new QrScanner(video, (decodedText) => {
                     result.textContent = decodedText;
                     qrScanner.stop(); // 読み取ったらスキャナーを停止
+                }, (error) => {
+                    console.error("QRコードのスキャンに失敗:", error);
+                    result.textContent = "QRコードのスキャンに失敗しました";
                 });
-                qrScanner.start();
+
+                await qrScanner.start();
             } catch (error) {
-                console.error("カメラのアクセスに失敗しました", error);
-                result.textContent = "カメラのアクセスに失敗しました";
+                console.error("カメラのアクセスに失敗しました:", error);
+                result.textContent = "カメラのアクセスに失敗しました: " + error.message;
             }
         }
 
